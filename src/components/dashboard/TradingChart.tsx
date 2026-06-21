@@ -13,7 +13,7 @@ export default function TradingChart() {
   const drawdownLimit = DEFAULT_THRESHOLDS.startingBalance * (1 - DEFAULT_THRESHOLDS.maxDailyDrawdownPct / 100);
 
   return (
-    <div className="h-[450px] w-full rounded-lg border border-white/10 bg-[#080d19] p-5 shadow-xl shadow-black/20">
+    <div className="h-[450px] w-full rounded-md border border-slate-800 bg-[#080d19] p-5">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="flex items-center gap-2 font-semibold tracking-tight text-white">

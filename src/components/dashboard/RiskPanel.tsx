@@ -70,8 +70,8 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
 
   if (!activeReport) {
     return (
-      <div className="flex h-full flex-col items-center justify-center space-y-6 rounded-lg border border-white/10 bg-[#080d19] p-5 shadow-xl shadow-black/20">
-        <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-cyan-400/20 bg-cyan-400/10">
+      <div className="flex h-full flex-col items-center justify-center space-y-6 rounded-md border border-slate-800 bg-[#080d19] p-5">
+        <div className="flex h-16 w-16 items-center justify-center rounded-md border border-cyan-400/20 bg-cyan-400/10">
           <Activity className="h-8 w-8 text-cyan-300" />
         </div>
         <div className="text-center">
@@ -81,7 +81,7 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
         <button 
           onClick={handleEvaluate}
           disabled={isEvaluating}
-          className="w-full rounded-lg bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+          className="w-full rounded-md bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
         >
           {isEvaluating ? "Analyzing Logs..." : "Run Daily Evaluation"}
         </button>
@@ -90,7 +90,7 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col gap-6 rounded-lg border border-white/10 bg-[#080d19] p-5 shadow-xl shadow-black/20">
+    <div className="flex h-full flex-col gap-6 rounded-md border border-slate-800 bg-[#080d19] p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           {activeReport.passedMetrics ? <ShieldCheck className="text-emerald-500 w-6 h-6" /> : <AlertTriangle className="text-rose-500 w-6 h-6" />}
@@ -147,7 +147,7 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
           <button 
             onClick={handleCommit}
             disabled={isUploading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-400 px-4 py-4 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-cyan-400 px-4 py-4 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
           >
             <Activity className="w-5 h-5" />
             {isUploading ? "Anchoring to 0G..." : "Commit Verifiable Log to 0G"}

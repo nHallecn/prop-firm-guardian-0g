@@ -2,11 +2,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Activity, Wallet, AlertCircle, DatabaseZap } from "lucide-react";
+import Image from "next/image";
+import { Wallet, AlertCircle, DatabaseZap } from "lucide-react";
 import { truncateHash } from "@/lib/utils/helpers";
 
-const EXPECTED_GALILEO_CHAIN_ID = process.env.NEXT_PUBLIC_ZEROG_CHAIN_ID_HEX;
-const GALILEO_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://rpc.testnet.0g.ai";
+const EXPECTED_GALILEO_CHAIN_ID = process.env.NEXT_PUBLIC_ZEROG_CHAIN_ID_HEX ?? "0x40da";
+const GALILEO_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://evmrpc-testnet.0g.ai";
 
 export default function Header() {
   const [account, setAccount] = useState<string | null>(null);
@@ -80,11 +81,18 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070b14]/90 px-4 py-3 backdrop-blur md:px-6">
-      <div className="mx-auto flex max-w-[1500px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <header className="sticky top-0 z-50 border-b border-slate-800 bg-[#070b14] px-4 py-3 md:px-6">
+      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-400/25 bg-cyan-400/10 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
-            <Activity className="h-5 w-5 text-cyan-300" />
+          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-slate-700 bg-slate-900">
+            <Image
+              src="/logo.png"
+              alt="Prop-Firm Guardian logo"
+              width={40}
+              height={40}
+              className="h-full w-full object-cover"
+              priority
+            />
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-base font-semibold tracking-tight text-white sm:text-lg">Prop-Firm Guardian</h1>
@@ -97,7 +105,7 @@ export default function Header() {
 
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
           <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-medium text-emerald-200">
+            <div className="flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-emerald-200">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-60"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-300"></span>
@@ -108,10 +116,10 @@ export default function Header() {
             <button
               onClick={connectWallet}
               disabled={isConnecting}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-xs font-semibold transition sm:flex-none ${
+              className={`flex flex-1 items-center justify-center gap-2 rounded-md border px-4 py-2 text-xs font-semibold transition sm:flex-none ${
                 account
-                  ? "border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
-                  : "border-cyan-400/40 bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-950/30 hover:bg-cyan-300"
+                  ? "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                  : "border-cyan-500 bg-cyan-400 text-slate-950 hover:bg-cyan-300"
               } disabled:cursor-not-allowed disabled:opacity-60`}
             >
               <Wallet className="h-4 w-4" />

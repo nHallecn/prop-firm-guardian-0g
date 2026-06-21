@@ -55,7 +55,7 @@ export default function HistoryPage() {
   };
 
   return (
-    <main className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+    <main className="w-full space-y-5 p-4 md:p-5 xl:p-6">
       <div>
         <h1 className="text-2xl font-bold text-white tracking-tight">Audit & Verification Vault</h1>
         <p className="text-sm text-slate-400 mt-1">Verify immutable prop-firm compliance logs cryptographic integrity directly from 0G Storage Nodes.</p>
@@ -69,21 +69,21 @@ export default function HistoryPage() {
             placeholder="Search by 0G Storage Root Hash (0x...)" 
             value={searchHash}
             onChange={(e) => setSearchHash(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
+            className="w-full rounded-md border border-slate-700 bg-[#050914] py-3 pl-10 pr-4 font-mono text-sm text-slate-200 outline-none focus:border-cyan-500"
           />
         </div>
-        <button type="submit" disabled={isVerifying} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+        <button type="submit" disabled={isVerifying} className="flex items-center gap-2 rounded-md bg-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50">
           {isVerifying && <Loader2 className="w-4 h-4 animate-spin" />}
           {isVerifying ? "Verifying" : "Verify"}
         </button>
       </form>
       {verificationStatus && (
-        <div className="rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-300">
+        <div className="rounded-md border border-slate-800 bg-[#080d19] px-4 py-3 text-sm text-slate-300">
           {verificationStatus}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
         <div className="lg:col-span-1 space-y-4">
           <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider font-mono">Archived Sessions</h3>
           <div className="space-y-3">
@@ -91,7 +91,7 @@ export default function HistoryPage() {
               <div 
                 key={item.rootHash}
                 onClick={() => setSelectedReport(item)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer bg-slate-900/50 ${selectedReport?.rootHash === item.rootHash ? 'border-blue-500 bg-slate-900' : 'border-slate-800 hover:border-slate-700'}`}
+                className={`cursor-pointer rounded-md border p-4 transition bg-[#080d19] ${selectedReport?.rootHash === item.rootHash ? 'border-cyan-500/50' : 'border-slate-800 hover:border-slate-700'}`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="flex items-center gap-2 text-sm text-slate-300 font-medium">
@@ -110,7 +110,7 @@ export default function HistoryPage() {
 
         <div className="lg:col-span-2">
           {selectedReport ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 shadow-xl">
+            <div className="space-y-6 rounded-md border border-slate-800 bg-[#080d19] p-6">
               <div className="flex justify-between items-start border-b border-slate-800 pb-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
@@ -175,7 +175,7 @@ export default function HistoryPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-slate-900 border border-slate-800 border-dashed rounded-xl p-12 text-center text-slate-500">
+            <div className="rounded-md border border-dashed border-slate-800 bg-[#080d19] p-12 text-center text-slate-500">
               Select an archived session or paste a 0G root hash to verify a stored compliance report.
             </div>
           )}

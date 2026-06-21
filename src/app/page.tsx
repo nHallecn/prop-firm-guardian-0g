@@ -8,7 +8,7 @@ import { buildEquityCurve, calculateRiskReport, DEFAULT_THRESHOLDS } from '@/lib
 
 const TradingChart = dynamic(() => import('@/components/dashboard/TradingChart'), {
   ssr: false,
-  loading: () => <div className="h-[450px] w-full rounded-xl border border-slate-800 bg-slate-900" />,
+  loading: () => <div className="h-[450px] w-full rounded-md border border-slate-800 bg-[#080d19]" />,
 });
 
 export default function DashboardPage() {
@@ -19,8 +19,8 @@ export default function DashboardPage() {
   const sessionPnL = currentEquity - DEFAULT_THRESHOLDS.startingBalance;
 
   return (
-    <main className="space-y-6 p-4 md:p-6 lg:p-8">
-      <section className="rounded-lg border border-white/10 bg-[#080d19]/90 p-5 shadow-2xl shadow-black/20">
+    <main className="w-full space-y-5 p-4 md:p-5 xl:p-6">
+      <section className="rounded-md border border-slate-800 bg-[#080d19] p-5">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300">0G Compliance Terminal</p>
@@ -47,12 +47,12 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_420px]">
         
-        <div className="space-y-6 xl:col-span-2">
+        <div className="min-w-0 space-y-5">
           <TradingChart />
           
-          <div className="rounded-lg border border-white/10 bg-[#080d19] p-5 shadow-xl shadow-black/20">
+          <div className="rounded-md border border-slate-800 bg-[#080d19] p-5">
             <h3 className="mb-5 text-base font-semibold tracking-tight text-white">Live Execution Feed</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-300">
@@ -95,7 +95,7 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <div className="flex flex-col gap-6 xl:col-span-1">
+        <div className="flex min-w-0 flex-col gap-5">
           <NewTradeForm />
           <RiskPanel trades={trades} />
         </div>
@@ -121,7 +121,7 @@ function MetricCard({
   }[tone];
 
   return (
-    <div className="min-w-0 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3">
+    <div className="min-w-0 rounded-md border border-slate-800 bg-[#0b1220] px-4 py-3">
       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</p>
       <p className={`mt-2 truncate font-mono text-sm font-semibold ${toneClass}`}>{value}</p>
     </div>

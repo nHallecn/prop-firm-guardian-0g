@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { AiRiskReport } from '@/types/0g';
 import { DataValidator } from '@/lib/utils/validation';
 
-const EVM_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://rpc.testnet.0g.ai";
+const EVM_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://evmrpc-testnet.0g.ai";
 const INDEXER_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_INDEXER_URL ?? "https://indexer-storage-testnet-turbo.0g.ai";
 type StorageFile = Parameters<Indexer['upload']>[0];
 

@@ -43,7 +43,7 @@ export default function NewTradeForm() {
   };
 
   return (
-    <div className="rounded-lg border border-white/10 bg-[#080d19] p-5 shadow-xl shadow-black/20">
+    <div className="rounded-md border border-slate-800 bg-[#080d19] p-5">
       <h3 className="mb-4 flex items-center gap-2 text-base font-semibold tracking-tight text-white">
         <PlusCircle className="h-5 w-5 text-cyan-300" />
         Simulate Order Execution
@@ -53,7 +53,7 @@ export default function NewTradeForm() {
         <button
           type="button"
           onClick={() => replaceTrades(compliantScenario)}
-          className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/15"
+          className="flex items-center justify-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/15"
         >
           <ShieldCheck className="h-4 w-4" />
           Load Pass Demo
@@ -61,7 +61,7 @@ export default function NewTradeForm() {
         <button
           type="button"
           onClick={() => replaceTrades(violationScenario)}
-          className="flex items-center justify-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/15"
+          className="flex items-center justify-center gap-2 rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/15"
         >
           <ShieldAlert className="h-4 w-4" />
           Load Breach Demo
@@ -75,14 +75,14 @@ export default function NewTradeForm() {
             <button
               type="button"
               onClick={() => setDirection("LONG")}
-              className={`rounded-lg border py-2 text-sm font-semibold transition ${direction === "LONG" ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-300" : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"}`}
+              className={`rounded-md border py-2 text-sm font-semibold transition ${direction === "LONG" ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-300" : "border-slate-700 bg-[#0b1220] text-slate-400 hover:text-slate-200"}`}
             >
               LONG (Buy)
             </button>
             <button
               type="button"
               onClick={() => setDirection("SHORT")}
-              className={`rounded-lg border py-2 text-sm font-semibold transition ${direction === "SHORT" ? "border-rose-400/40 bg-rose-500/10 text-rose-300" : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"}`}
+              className={`rounded-md border py-2 text-sm font-semibold transition ${direction === "SHORT" ? "border-rose-400/40 bg-rose-500/10 text-rose-300" : "border-slate-700 bg-[#0b1220] text-slate-400 hover:text-slate-200"}`}
             >
               SHORT (Sell)
             </button>
@@ -94,7 +94,7 @@ export default function NewTradeForm() {
           <select
             value={asset}
             onChange={(e) => setAsset(e.target.value as AssetPair)}
-            className="w-full rounded-lg border border-white/10 bg-[#050914] p-2.5 font-mono text-sm text-slate-200 outline-none transition focus:border-cyan-400/50"
+            className="w-full rounded-md border border-slate-700 bg-[#050914] p-2.5 font-mono text-sm text-slate-200 outline-none transition focus:border-cyan-400/50"
           >
             <option value="XAU/USD">XAU/USD</option>
             <option value="BTC/USD">BTC/USD</option>
@@ -108,7 +108,7 @@ export default function NewTradeForm() {
             <select
               value={leverage}
               onChange={(e) => setLeverage(Number(e.target.value))}
-              className="w-full rounded-lg border border-white/10 bg-[#050914] p-2.5 font-mono text-sm text-slate-200 outline-none transition focus:border-cyan-400/50"
+              className="w-full rounded-md border border-slate-700 bg-[#050914] p-2.5 font-mono text-sm text-slate-200 outline-none transition focus:border-cyan-400/50"
             >
               <option value={10}>10x</option>
               <option value={20}>20x</option>
@@ -125,7 +125,7 @@ export default function NewTradeForm() {
                 placeholder="e.g. -1250 or 3400"
                 value={pnl}
                 onChange={(e) => setPnl(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-[#050914] py-2 pl-9 pr-4 font-mono text-sm text-slate-200 outline-none transition focus:border-cyan-400/50"
+                className="w-full rounded-md border border-slate-700 bg-[#050914] py-2 pl-9 pr-4 font-mono text-sm text-slate-200 outline-none transition focus:border-cyan-400/50"
               />
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function NewTradeForm() {
 
         <button
           type="submit"
-          className="w-full rounded-lg border border-white/10 bg-white/10 py-2.5 text-sm font-semibold text-slate-100 shadow transition hover:bg-white/15"
+          className="w-full rounded-md border border-slate-700 bg-slate-800 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-slate-700"
         >
           Inject Trade Into Feed
         </button>
