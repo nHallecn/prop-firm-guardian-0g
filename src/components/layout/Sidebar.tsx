@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShieldAlert, KeyRound } from 'lucide-react';
+import { LayoutDashboard, ShieldAlert, KeyRound, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -14,9 +14,9 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-slate-950 border-r border-slate-800 hidden md:flex flex-col justify-between p-4 min-h-[calc(100vh-69px)]">
+    <aside className="sticky top-[65px] hidden h-[calc(100vh-65px)] w-64 shrink-0 flex-col justify-between border-r border-white/10 bg-white/[0.02] p-4 md:flex">
       <div className="space-y-6">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-3 block">Navigation</span>
+        <span className="block px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Workspace</span>
         <nav className="space-y-1">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
@@ -24,13 +24,13 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   isActive 
-                    ? 'bg-slate-900 text-white border border-slate-800' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+                    ? 'border border-cyan-400/20 bg-cyan-400/10 text-white shadow-[inset_3px_0_0_rgba(34,211,238,0.75)]' 
+                    : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
                 }`}
               >
-                <item.icon className={`w-4 h-4 ${isActive ? 'text-blue-500' : 'text-slate-500'}`} />
+                <item.icon className={`h-4 w-4 ${isActive ? 'text-cyan-300' : 'text-slate-500'}`} />
                 {item.name}
               </Link>
             );
@@ -38,14 +38,18 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="bg-slate-900/50 border border-slate-800/60 p-4 rounded-xl space-y-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-          <KeyRound className="w-3.5 h-3.5 text-blue-500" />
-          <span>Security Protocol</span>
+      <div className="space-y-3 rounded-lg border border-white/10 bg-[#0a101d] p-4">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+          <KeyRound className="h-3.5 w-3.5 text-cyan-300" />
+          <span>Proof Pipeline</span>
         </div>
-        <p className="text-[11px] text-slate-500 leading-normal">
-          All reports are processed locally and securely compiled into Merkle trees before submission to 0G storage nodes.
+        <p className="text-[11px] leading-5 text-slate-500">
+          Trades are scored, serialized, Merkle-rooted, and anchored to 0G Storage for root-hash verification.
         </p>
+        <div className="flex items-center gap-2 rounded-md border border-emerald-400/15 bg-emerald-400/10 px-2.5 py-2 text-[11px] font-medium text-emerald-200">
+          <ShieldCheck className="h-3.5 w-3.5" />
+          Demo-ready flow
+        </div>
       </div>
     </aside>
   );

@@ -1,5 +1,3 @@
-// src/app/layout.tsx
-// UPDATE: Integrate the TradingProvider and structural layout composition
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import Header from "@/components/layout/Header";
@@ -11,8 +9,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "Prop-Firm Guardian AI | 0G Network",
-  description: "Verifiable AI risk management for prop-firm traders.",
+  title: "Prop-Firm Guardian | 0G Network",
+  description: "Verifiable prop-firm risk logs anchored to 0G Storage.",
 };
 
 export default function RootLayout({
@@ -22,12 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-slate-950 text-slate-50 min-h-screen flex flex-col`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-[#030712] font-sans text-slate-50 antialiased`}>
         <TradingProvider>
           <Header />
-          <div className="flex flex-1">
+          <div className="mx-auto flex w-full max-w-[1500px]">
             <Sidebar />
-            <div className="flex-1 overflow-x-hidden bg-slate-950/40">
+            <div className="min-w-0 flex-1 overflow-x-hidden">
               {children}
             </div>
           </div>

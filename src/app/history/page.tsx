@@ -2,23 +2,55 @@
 "use client";
 
 import { useState } from 'react';
-import { Search, Shield, Calendar, AlertCircle, ExternalLink } from 'lucide-react';
+import { Search, Shield, Calendar, AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { useTrading } from '@/context/TradingContext';
+import { fetchReportFrom0G } from '@/lib/0g/storage';
+import { isValidHexHash } from '@/lib/utils/helpers';
 
 export default function HistoryPage() {
   const { committedLogs } = useTrading();
   const [searchHash, setSearchHash] = useState('');
   const [selectedReport, setSelectedReport] = useState<typeof committedLogs[0] | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedHash = searchHash.trim();
+    setVerificationStatus(null);
+    setIsVerifying(true);
+
+    if (!isValidHexHash(normalizedHash)) {
+      setVerificationStatus("Enter a valid 64-character 0G root hash before verification.");
+      setIsVerifying(false);
+      return;
+    }
+
     const found = committedLogs.find(
-      item => item.rootHash.toLowerCase() === searchHash.trim().toLowerCase()
+      item => item.rootHash.toLowerCase() === normalizedHash.toLowerCase()
     );
     if (found) {
       setSelectedReport(found);
-    } else {
-      alert("Hash sequence mismatch. Verify the characters or secure an ongoing stream directly from the storage node.");
+      setVerificationStatus("Matched against locally committed session cache.");
+      setIsVerifying(false);
+      return;
+    }
+
+    try {
+      const remoteReport = await fetchReportFrom0G(normalizedHash);
+      setSelectedReport({
+        rootHash: normalizedHash,
+        txHash: "",
+        date: remoteReport.evaluationDate.split('T')[0],
+        passed: remoteReport.passedMetrics,
+        report: remoteReport,
+      });
+      setVerificationStatus("Downloaded report payload from 0G and validated its schema.");
+    } catch (error) {
+      console.error("0G verification lookup failed", error);
+      setVerificationStatus("No local match and 0G download failed. Check the root hash, indexer endpoint, or network availability.");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -40,10 +72,16 @@ export default function HistoryPage() {
             className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
           />
         </div>
-        <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all">
-          Verify
+        <button type="submit" disabled={isVerifying} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+          {isVerifying && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isVerifying ? "Verifying" : "Verify"}
         </button>
       </form>
+      {verificationStatus && (
+        <div className="rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-300">
+          {verificationStatus}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-4">
@@ -81,19 +119,25 @@ export default function HistoryPage() {
                   </h2>
                   <p className="text-xs text-slate-400 font-mono mt-1 break-all">Root Hash: {selectedReport.rootHash}</p>
                 </div>
-                <a 
-                  href={`https://scan.testnet.0g.ai/tx/${selectedReport.txHash}`} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-blue-400 hover:underline bg-blue-950/40 border border-blue-900/50 px-2.5 py-1 rounded"
-                >
-                  0GScan <ExternalLink className="w-3 h-3" />
-                </a>
+                {selectedReport.txHash ? (
+                  <a 
+                    href={`https://scan.testnet.0g.ai/tx/${selectedReport.txHash}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-blue-400 hover:underline bg-blue-950/40 border border-blue-900/50 px-2.5 py-1 rounded"
+                  >
+                    0GScan <ExternalLink className="w-3 h-3" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-slate-500 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded">
+                    Remote payload verified
+                  </span>
+                )}
               </div>
 
               <div className="space-y-4">
                 <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
-                  <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider">AI Analysis Statement</h4>
+                  <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Compliance Agent Statement</h4>
                   <p className="text-sm text-slate-300 leading-relaxed font-sans">{selectedReport.report.aiBehavioralSummary}</p>
                 </div>
 
@@ -132,7 +176,7 @@ export default function HistoryPage() {
             </div>
           ) : (
             <div className="bg-slate-900 border border-slate-800 border-dashed rounded-xl p-12 text-center text-slate-500">
-              Select an archived trading session layout from the left column to parse its cryptographic JSON payload structures.
+              Select an archived session or paste a 0G root hash to verify a stored compliance report.
             </div>
           )}
         </div>

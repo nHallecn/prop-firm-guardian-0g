@@ -2,8 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Activity, Wallet, AlertCircle } from "lucide-react";
+import { Activity, Wallet, AlertCircle, DatabaseZap } from "lucide-react";
 import { truncateHash } from "@/lib/utils/helpers";
+
+const GALILEO_CHAIN_ID = "0x40d8"; // 16600
+const GALILEO_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://rpc.testnet.0g.ai";
 
 export default function Header() {
   const [account, setAccount] = useState<string | null>(null);
@@ -32,7 +35,7 @@ export default function Header() {
     setIsConnecting(true);
 
     if (typeof window === "undefined" || !window.ethereum) {
-      setError("MetaMask extension not found. Please deploy a valid Web3 injection provider.");
+      setError("MetaMask was not detected in this browser.");
       setIsConnecting(false);
       return;
     }
@@ -40,12 +43,12 @@ export default function Header() {
     try {
       const accounts = await window.ethereum.request<string[]>({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
-      
-      // Request switch to Galileo Testnet (Chain ID 16600 or equivalent based on hackathon specifications)
-      // For development purposes, we keep the connection generic to the active browser provider chain state
+      await ensureGalileoNetwork();
     } catch (err: unknown) {
       if (isProviderError(err) && err.code === 4001) {
         setError("Connection signature request rejected by the user.");
+      } else if (isProviderError(err) && err.code === 4902) {
+        setError("Galileo Testnet is not available in MetaMask.");
       } else {
         setError("Cryptographic authentication handshake failed.");
       }
@@ -55,48 +58,85 @@ export default function Header() {
   };
 
   return (
-    <header className="border-b border-slate-800 bg-slate-950 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-50">
-      <div className="flex items-center gap-3 w-full sm:w-auto">
-        <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
-          <Activity className="w-5 h-5 text-emerald-400" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-100">Prop-Firm Guardian</h1>
-          <p className="text-xs text-slate-400 font-mono">0G Network Integrated</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-end">
-        {error && (
-          <div className="flex items-center gap-1.5 text-xs text-rose-400 bg-rose-950/20 border border-rose-900/30 px-3 py-1.5 rounded-lg font-mono max-w-xs truncate">
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{error}</span>
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070b14]/90 px-4 py-3 backdrop-blur md:px-6">
+      <div className="mx-auto flex max-w-[1500px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-400/25 bg-cyan-400/10 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
+            <Activity className="h-5 w-5 text-cyan-300" />
           </div>
-        )}
-
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1.5 rounded-md border border-slate-800">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          Galileo Testnet
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-semibold tracking-tight text-white sm:text-lg">Prop-Firm Guardian</h1>
+            <p className="flex items-center gap-1.5 text-xs text-slate-400">
+              <DatabaseZap className="h-3.5 w-3.5 text-emerald-300" />
+              Verifiable risk logs on 0G
+            </p>
+          </div>
         </div>
 
-        <button
-          onClick={connectWallet}
-          disabled={isConnecting}
-          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-xs font-semibold tracking-wide border transition-all ${
-            account
-              ? "bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800"
-              : "bg-blue-600 border-blue-500 text-white hover:bg-blue-500 shadow-md shadow-blue-900/20"
-          }`}
-        >
-          <Wallet className="w-3.5 h-3.5" />
-          {account ? truncateHash(account) : isConnecting ? "Connecting..." : "Connect Terminal Wallet"}
-        </button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-medium text-emerald-200">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-60"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-300"></span>
+              </span>
+              Galileo Testnet
+            </div>
+
+            <button
+              onClick={connectWallet}
+              disabled={isConnecting}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-xs font-semibold transition sm:flex-none ${
+                account
+                  ? "border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
+                  : "border-cyan-400/40 bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-950/30 hover:bg-cyan-300"
+              } disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              <Wallet className="h-4 w-4" />
+              {account ? truncateHash(account) : isConnecting ? "Connecting..." : "Connect Wallet"}
+            </button>
+          </div>
+
+          {error && (
+            <div className="flex max-w-full items-center gap-1.5 rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-1.5 text-xs text-rose-200 sm:max-w-md">
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">{error}</span>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
+}
+
+async function ensureGalileoNetwork() {
+  if (!window.ethereum) return;
+
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: GALILEO_CHAIN_ID }],
+    });
+  } catch (error: unknown) {
+    if (!isProviderError(error) || error.code !== 4902) {
+      throw error;
+    }
+
+    await window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [{
+        chainId: GALILEO_CHAIN_ID,
+        chainName: "0G Galileo Testnet",
+        nativeCurrency: {
+          name: "0G",
+          symbol: "0G",
+          decimals: 18,
+        },
+        rpcUrls: [GALILEO_RPC_URL],
+        blockExplorerUrls: ["https://scan.testnet.0g.ai"],
+      }],
+    });
+  }
 }
 
 function isProviderError(error: unknown): error is { code: number } {

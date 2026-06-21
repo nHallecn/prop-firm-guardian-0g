@@ -13,11 +13,11 @@ export default function TradingChart() {
   const drawdownLimit = DEFAULT_THRESHOLDS.startingBalance * (1 - DEFAULT_THRESHOLDS.maxDailyDrawdownPct / 100);
 
   return (
-    <div className="h-[450px] w-full bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl">
+    <div className="h-[450px] w-full rounded-lg border border-white/10 bg-[#080d19] p-5 shadow-xl shadow-black/20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-emerald-400 font-semibold tracking-wide flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h2 className="flex items-center gap-2 font-semibold tracking-tight text-white">
+            <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(103,232,249,0.7)]"></span>
             Live Prop-Firm Equity Curve
           </h2>
           <p className="text-slate-400 text-sm mt-1 font-mono">Starting Balance: ${DEFAULT_THRESHOLDS.startingBalance.toLocaleString()}.00</p>
@@ -56,8 +56,8 @@ export default function TradingChart() {
               tickLine={false}
             />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc', borderRadius: '8px' }} 
-              itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+              contentStyle={{ backgroundColor: '#080d19', borderColor: 'rgba(255,255,255,0.12)', color: '#f8fafc', borderRadius: '8px' }} 
+              itemStyle={{ color: '#67e8f9', fontWeight: 'bold' }}
               labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
               formatter={(value) => {
                 const numericValue = typeof value === 'number' ? value : Number(value ?? 0);
@@ -73,10 +73,10 @@ export default function TradingChart() {
             <Line 
               type="monotone" 
               dataKey="equity" 
-              stroke="#10b981" 
+              stroke="#22d3ee" 
               strokeWidth={3} 
-              dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} 
-              activeDot={{ r: 6, stroke: '#059669', strokeWidth: 2 }}
+              dot={{ r: 4, fill: '#22d3ee', strokeWidth: 0 }} 
+              activeDot={{ r: 6, stroke: '#0891b2', strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>

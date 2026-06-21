@@ -17,6 +17,7 @@ interface TradingContextType {
   trades: TradeRecord[];
   committedLogs: CommittedLog[];
   addTrade: (trade: Omit<TradeRecord, 'id' | 'timestamp'>) => void;
+  replaceTrades: (trades: TradeRecord[]) => void;
   addCommittedLog: (log: CommittedLog) => void;
 }
 
@@ -71,12 +72,16 @@ export function TradingProvider({ children }: { children: ReactNode }) {
     setTrades((prev) => [newTrade, ...prev]);
   };
 
+  const replaceTrades = (nextTrades: TradeRecord[]) => {
+    setTrades(nextTrades);
+  };
+
   const addCommittedLog = (log: CommittedLog) => {
     setCommittedLogs((prev) => [log, ...prev]);
   };
 
   return (
-    <TradingContext.Provider value={{ trades, committedLogs, addTrade, addCommittedLog }}>
+    <TradingContext.Provider value={{ trades, committedLogs, addTrade, replaceTrades, addCommittedLog }}>
       {children}
     </TradingContext.Provider>
   );

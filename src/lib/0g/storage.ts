@@ -2,6 +2,7 @@
 import { Blob as ZgBlob, Indexer } from '@0gfoundation/0g-storage-ts-sdk/browser';
 import { ethers } from 'ethers';
 import { AiRiskReport } from '@/types/0g';
+import { DataValidator } from '@/lib/utils/validation';
 
 const EVM_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://rpc.testnet.0g.ai";
 const INDEXER_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_INDEXER_URL ?? "https://indexer-storage-testnet-turbo.0g.ai";
@@ -46,4 +47,21 @@ export async function commitReportTo0G(report: AiRiskReport): Promise<{ rootHash
     console.error("0G Upload Error:", error);
     throw error;
   }
+}
+
+export async function fetchReportFrom0G(rootHash: string): Promise<AiRiskReport> {
+  const indexer = new Indexer(INDEXER_RPC_URL);
+  const [blob, downloadError] = await indexer.downloadToBlob(rootHash);
+  if (downloadError) {
+    throw downloadError;
+  }
+
+  const text = await blob.text();
+  const parsedPayload = JSON.parse(text);
+  const reportCheck = DataValidator.validateAiReportSchema(parsedPayload);
+  if (!reportCheck.isValid) {
+    throw new Error(reportCheck.error);
+  }
+
+  return reportCheck.sanitizedReport;
 }
