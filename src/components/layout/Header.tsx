@@ -5,11 +5,12 @@ import { useState, useEffect } from "react";
 import { Activity, Wallet, AlertCircle, DatabaseZap } from "lucide-react";
 import { truncateHash } from "@/lib/utils/helpers";
 
-const GALILEO_CHAIN_ID = "0x40d8"; // 16600
+const EXPECTED_GALILEO_CHAIN_ID = process.env.NEXT_PUBLIC_ZEROG_CHAIN_ID_HEX;
 const GALILEO_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://rpc.testnet.0g.ai";
 
 export default function Header() {
   const [account, setAccount] = useState<string | null>(null);
+  const [chainId, setChainId] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,12 +23,27 @@ export default function Header() {
           if (accounts.length > 0) {
             setAccount(accounts[0]);
           }
+          const activeChainId = await window.ethereum.request<string>({ method: "eth_chainId" });
+          setChainId(activeChainId);
         } catch (err) {
           console.error("Failed to recover active session authorization parameters:", err);
         }
       }
     };
     checkConnection();
+
+    const handleChainChanged = (nextChainId: unknown) => {
+      if (typeof nextChainId === "string") {
+        setChainId(nextChainId);
+      }
+    };
+
+    window.ethereum?.request<string>({ method: "eth_chainId" }).then(setChainId).catch(() => undefined);
+    window.ethereum?.on?.("chainChanged", handleChainChanged);
+
+    return () => {
+      window.ethereum?.removeListener?.("chainChanged", handleChainChanged);
+    };
   }, []);
 
   const connectWallet = async () => {
@@ -43,14 +59,20 @@ export default function Header() {
     try {
       const accounts = await window.ethereum.request<string[]>({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
-      await ensureGalileoNetwork();
+      const activeChainId = await window.ethereum.request<string>({ method: "eth_chainId" });
+      setChainId(activeChainId);
+      if (EXPECTED_GALILEO_CHAIN_ID && activeChainId !== EXPECTED_GALILEO_CHAIN_ID) {
+        await ensureGalileoNetwork();
+        const updatedChainId = await window.ethereum.request<string>({ method: "eth_chainId" });
+        setChainId(updatedChainId);
+      }
     } catch (err: unknown) {
       if (isProviderError(err) && err.code === 4001) {
         setError("Connection signature request rejected by the user.");
       } else if (isProviderError(err) && err.code === 4902) {
         setError("Galileo Testnet is not available in MetaMask.");
       } else {
-        setError("Cryptographic authentication handshake failed.");
+        setError(getProviderErrorMessage(err, "Wallet connection failed."));
       }
     } finally {
       setIsConnecting(false);
@@ -80,7 +102,7 @@ export default function Header() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-60"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-300"></span>
               </span>
-              Galileo Testnet
+              {chainId ? `Chain ${Number(chainId).toString()}` : "Wallet Network"}
             </div>
 
             <button
@@ -110,12 +132,12 @@ export default function Header() {
 }
 
 async function ensureGalileoNetwork() {
-  if (!window.ethereum) return;
+  if (!window.ethereum || !EXPECTED_GALILEO_CHAIN_ID) return;
 
   try {
     await window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: GALILEO_CHAIN_ID }],
+      params: [{ chainId: EXPECTED_GALILEO_CHAIN_ID }],
     });
   } catch (error: unknown) {
     if (!isProviderError(error) || error.code !== 4902) {
@@ -125,7 +147,7 @@ async function ensureGalileoNetwork() {
     await window.ethereum.request({
       method: "wallet_addEthereumChain",
       params: [{
-        chainId: GALILEO_CHAIN_ID,
+        chainId: EXPECTED_GALILEO_CHAIN_ID,
         chainName: "0G Galileo Testnet",
         nativeCurrency: {
           name: "0G",
@@ -141,4 +163,12 @@ async function ensureGalileoNetwork() {
 
 function isProviderError(error: unknown): error is { code: number } {
   return typeof error === 'object' && error !== null && 'code' in error;
+}
+
+function getProviderErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === "object" && error !== null && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return fallback;
 }

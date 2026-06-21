@@ -62,7 +62,7 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
       });
     } catch (error) {
       console.error("0G anchoring failed", error);
-      alert("Failed to anchor to 0G. Verify that MetaMask is active and configured to the Galileo Testnet RPC.");
+      alert(`Failed to anchor to 0G: ${getErrorMessage(error)}`);
     } finally {
       setIsUploading(false);
     }
@@ -156,4 +156,16 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
       </div>
     </div>
   );
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "object" && error !== null && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return "Verify MetaMask, testnet funds, and the configured 0G RPC/indexer endpoints.";
 }
