@@ -1,11 +1,14 @@
-// src/app/page.tsx
-// UPDATE: Bind the live state values from TradingContext to update table and chart dynamically
 "use client";
 
-import TradingChart from '@/components/dashboard/TradingChart';
+import dynamic from 'next/dynamic';
 import RiskPanel from '@/components/dashboard/RiskPanel';
 import NewTradeForm from '@/components/dashboard/NewTradeForm';
 import { useTrading } from '@/context/TradingContext';
+
+const TradingChart = dynamic(() => import('@/components/dashboard/TradingChart'), {
+  ssr: false,
+  loading: () => <div className="h-[450px] w-full rounded-xl border border-slate-800 bg-slate-900" />,
+});
 
 export default function DashboardPage() {
   const { trades } = useTrading();

@@ -18,6 +18,10 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [hashData, setHashData] = useState<{ rootHash: string, txHash: string } | null>(null);
+  const [evaluatedTradeSignature, setEvaluatedTradeSignature] = useState<string | null>(null);
+  const currentTradeSignature = trades.map((trade) => `${trade.id}:${trade.timestamp}:${trade.realizedPnL}:${trade.leverage}`).join('|');
+  const activeReport = evaluatedTradeSignature === currentTradeSignature ? report : null;
+  const activeHashData = evaluatedTradeSignature === currentTradeSignature ? hashData : null;
 
   const handleEvaluate = async () => {
     setIsEvaluating(true);
@@ -29,6 +33,8 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
       });
       const data = await res.json();
       setReport(data);
+      setHashData(null);
+      setEvaluatedTradeSignature(currentTradeSignature);
     } catch (error) {
       console.error("Evaluation failed", error);
     } finally {
@@ -37,10 +43,10 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
   };
 
   const handleCommit = async () => {
-    if (!report) return;
+    if (!activeReport) return;
     setIsUploading(true);
     try {
-      const result = await commitReportTo0G(report);
+      const result = await commitReportTo0G(activeReport);
       setHashData(result);
       
       // Append the successfully uploaded metadata into the global context
@@ -48,17 +54,18 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
         rootHash: result.rootHash,
         txHash: result.txHash,
         date: new Date().toISOString().split('T')[0],
-        passed: report.passedMetrics,
-        report: report
+        passed: activeReport.passedMetrics,
+        report: activeReport
       });
     } catch (error) {
+      console.error("0G anchoring failed", error);
       alert("Failed to anchor to 0G. Verify that MetaMask is active and configured to the Galileo Testnet RPC.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  if (!report) {
+  if (!activeReport) {
     return (
       <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl h-full flex flex-col items-center justify-center space-y-6">
         <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center">
@@ -83,43 +90,43 @@ export default function RiskPanel({ trades }: RiskPanelProps) {
     <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl flex flex-col gap-6 h-full">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          {report.passedMetrics ? <ShieldCheck className="text-emerald-500 w-6 h-6" /> : <AlertTriangle className="text-rose-500 w-6 h-6" />}
+          {activeReport.passedMetrics ? <ShieldCheck className="text-emerald-500 w-6 h-6" /> : <AlertTriangle className="text-rose-500 w-6 h-6" />}
           AI Risk Report
         </h2>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase ${report.passedMetrics ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-          {report.passedMetrics ? 'Passed' : 'Failed'}
+        <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase ${activeReport.passedMetrics ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+          {activeReport.passedMetrics ? 'Passed' : 'Failed'}
         </span>
       </div>
       
       <p className="text-slate-300 text-sm leading-relaxed bg-slate-950 p-4 rounded-lg border border-slate-800">
-        {report.aiBehavioralSummary}
+        {activeReport.aiBehavioralSummary}
       </p>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
           <span className="block text-slate-500 text-xs uppercase tracking-wider mb-1">Max Drawdown</span>
-          <span className="text-white font-mono text-xl">{report.metrics.maxDrawdownPct}%</span>
+          <span className="text-white font-mono text-xl">{activeReport.metrics.maxDrawdownPct}%</span>
         </div>
         <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
           <span className="block text-slate-500 text-xs uppercase tracking-wider mb-1">Violations</span>
-          <span className={`font-mono text-xl ${report.violations.length > 0 ? 'text-rose-400' : 'text-white'}`}>
-            {report.violations.length}
+          <span className={`font-mono text-xl ${activeReport.violations.length > 0 ? 'text-rose-400' : 'text-white'}`}>
+            {activeReport.violations.length}
           </span>
         </div>
       </div>
 
       <div className="mt-auto pt-6 border-t border-slate-800">
-        {hashData ? (
+        {activeHashData ? (
           <div className="bg-emerald-950/30 border border-emerald-500/30 p-4 rounded-lg break-all space-y-3">
             <div>
               <span className="flex items-center gap-2 text-emerald-500 text-xs uppercase tracking-wider mb-1 font-semibold">
                 <Fingerprint className="w-4 h-4" /> 0G Root Hash
               </span>
-              <span className="text-emerald-400 font-mono text-xs">{hashData.rootHash}</span>
+              <span className="text-emerald-400 font-mono text-xs">{activeHashData.rootHash}</span>
             </div>
             <div>
               <span className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-semibold">Transaction</span>
-              <span className="text-slate-400 font-mono text-xs">{hashData.txHash}</span>
+              <span className="text-slate-400 font-mono text-xs">{activeHashData.txHash}</span>
             </div>
           </div>
         ) : (

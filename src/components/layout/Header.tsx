@@ -1,6 +1,4 @@
 // src/components/layout/Header.tsx
-// REVISION: Enhancing the Header to support a fully functional Web3 MetaMask connection
-// tracking account states and updating the 0G Galileo Testnet alignment dynamically.
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,7 +15,7 @@ export default function Header() {
     const checkConnection = async () => {
       if (typeof window !== "undefined" && window.ethereum) {
         try {
-          const accounts = await window.ethereum.request({ method: "eth_accounts" });
+          const accounts = await window.ethereum.request<string[]>({ method: "eth_accounts" });
           if (accounts.length > 0) {
             setAccount(accounts[0]);
           }
@@ -40,13 +38,13 @@ export default function Header() {
     }
 
     try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const accounts = await window.ethereum.request<string[]>({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
       
       // Request switch to Galileo Testnet (Chain ID 16600 or equivalent based on hackathon specifications)
       // For development purposes, we keep the connection generic to the active browser provider chain state
-    } catch (err: any) {
-      if (err.code === 4001) {
+    } catch (err: unknown) {
+      if (isProviderError(err) && err.code === 4001) {
         setError("Connection signature request rejected by the user.");
       } else {
         setError("Cryptographic authentication handshake failed.");
@@ -99,4 +97,8 @@ export default function Header() {
       </div>
     </header>
   );
+}
+
+function isProviderError(error: unknown): error is { code: number } {
+  return typeof error === 'object' && error !== null && 'code' in error;
 }

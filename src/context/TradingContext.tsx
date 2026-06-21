@@ -1,7 +1,7 @@
 // src/context/TradingContext.tsx
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { TradeRecord } from '@/types/trading';
 import { AiRiskReport } from '@/types/0g';
 
@@ -21,6 +21,8 @@ interface TradingContextType {
 }
 
 const TradingContext = createContext<TradingContextType | undefined>(undefined);
+const TRADES_STORAGE_KEY = 'prop-firm-guardian-trades';
+const LOGS_STORAGE_KEY = 'prop-firm-guardian-logs';
 
 const initialTrades: TradeRecord[] = [
   { id: '1', timestamp: '2026-06-19T12:05:11Z', asset: 'XAU/USD', direction: 'LONG', entryPrice: 2341.50, exitPrice: 2345.00, leverage: 15, realizedPnL: 2500.00 },
@@ -45,13 +47,25 @@ const initialLogs: CommittedLog[] = [
 ];
 
 export function TradingProvider({ children }: { children: ReactNode }) {
-  const [trades, setTrades] = useState<TradeRecord[]>(initialTrades);
-  const [committedLogs, setCommittedLogs] = useState<CommittedLog[]>(initialLogs);
+  const [trades, setTrades] = useState<TradeRecord[]>(() => readStoredValue(TRADES_STORAGE_KEY, initialTrades));
+  const [committedLogs, setCommittedLogs] = useState<CommittedLog[]>(() => readStoredValue(LOGS_STORAGE_KEY, initialLogs));
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(TRADES_STORAGE_KEY, JSON.stringify(trades));
+    }
+  }, [trades]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(committedLogs));
+    }
+  }, [committedLogs]);
 
   const addTrade = (tradeData: Omit<TradeRecord, 'id' | 'timestamp'>) => {
     const newTrade: TradeRecord = {
       ...tradeData,
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
     };
     setTrades((prev) => [newTrade, ...prev]);
@@ -72,4 +86,17 @@ export function useTrading() {
   const context = useContext(TradingContext);
   if (!context) throw new Error('useTrading must be used within a TradingProvider');
   return context;
+}
+
+function readStoredValue<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(key);
+    return storedValue ? (JSON.parse(storedValue) as T) : fallback;
+  } catch {
+    return fallback;
+  }
 }

@@ -2,38 +2,43 @@
 "use client";
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { DailyEquityState } from '@/types/trading';
-
-const mockEquityData: DailyEquityState[] = [
-  { time: '09:30', equity: 100000 },
-  { time: '10:00', equity: 100500 },
-  { time: '10:30', equity: 101200 },
-  { time: '11:00', equity: 99800 },
-  { time: '11:30', equity: 99500 },
-  { time: '12:00', equity: 102000 },
-  { time: '12:30', equity: 101800 },
-  { time: '13:00', equity: 102500 },
-];
-
-const STARTING_BALANCE = 100000;
-const MAX_DRAWDOWN_LIMIT = STARTING_BALANCE * 0.95; // 5% Drawdown limit
+import { useTrading } from '@/context/TradingContext';
+import { buildEquityCurve, DEFAULT_THRESHOLDS } from '@/lib/utils/riskRules';
 
 export default function TradingChart() {
+  const { trades } = useTrading();
+  const equityData = buildEquityCurve(trades);
+  const currentEquity = equityData[equityData.length - 1]?.equity ?? DEFAULT_THRESHOLDS.startingBalance;
+  const sessionPnL = currentEquity - DEFAULT_THRESHOLDS.startingBalance;
+  const drawdownLimit = DEFAULT_THRESHOLDS.startingBalance * (1 - DEFAULT_THRESHOLDS.maxDailyDrawdownPct / 100);
+
   return (
     <div className="h-[450px] w-full bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-emerald-400 font-semibold tracking-wide flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            XAU/USD Live Equity Curve
+            Live Prop-Firm Equity Curve
           </h2>
-          <p className="text-slate-400 text-sm mt-1 font-mono">Starting Balance: $100,000.00</p>
+          <p className="text-slate-400 text-sm mt-1 font-mono">Starting Balance: ${DEFAULT_THRESHOLDS.startingBalance.toLocaleString()}.00</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-right">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">Current Equity</p>
+            <p className="font-mono text-slate-100">${currentEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">Session PnL</p>
+            <p className={`font-mono ${sessionPnL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {sessionPnL >= 0 ? '+' : ''}${sessionPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </p>
+          </div>
         </div>
       </div>
       
       <div className="h-[320px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={mockEquityData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+          <LineChart data={equityData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
             <XAxis 
               dataKey="time" 
@@ -54,13 +59,16 @@ export default function TradingChart() {
               contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc', borderRadius: '8px' }} 
               itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
               labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-              formatter={(value: number) => [`$${value.toLocaleString()}`, 'Equity']}
+              formatter={(value) => {
+                const numericValue = typeof value === 'number' ? value : Number(value ?? 0);
+                return [`$${numericValue.toLocaleString()}`, 'Equity'];
+              }}
             />
             <ReferenceLine 
-              y={MAX_DRAWDOWN_LIMIT} 
+              y={drawdownLimit} 
               stroke="#e11d48" 
               strokeDasharray="4 4" 
-              label={{ position: 'insideBottomRight', value: '5% Hard Drawdown Limit', fill: '#e11d48', fontSize: 12 }} 
+              label={{ position: 'insideBottomRight', value: `${DEFAULT_THRESHOLDS.maxDailyDrawdownPct}% Hard Drawdown Limit`, fill: '#e11d48', fontSize: 12 }} 
             />
             <Line 
               type="monotone" 

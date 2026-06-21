@@ -1,6 +1,4 @@
 // src/components/dashboard/NewTradeForm.tsx
-// REVISION: Enhancing component functionality to include input boundary constraints 
-// and dynamic feedback elements before updating context state.
 "use client";
 
 import { useState } from 'react';
@@ -10,6 +8,7 @@ import { AssetPair, TradeDirection } from '@/types/trading';
 
 export default function NewTradeForm() {
   const { addTrade } = useTrading();
+  const [asset, setAsset] = useState<AssetPair>("XAU/USD");
   const [direction, setDirection] = useState<TradeDirection>("LONG");
   const [leverage, setLeverage] = useState<number>(10);
   const [pnl, setPnl] = useState<string>("");
@@ -31,7 +30,7 @@ export default function NewTradeForm() {
     }
 
     addTrade({
-      asset: "XAU/USD" as AssetPair,
+      asset,
       direction,
       leverage,
       entryPrice: 2340.00,
@@ -68,6 +67,19 @@ export default function NewTradeForm() {
               SHORT (Sell)
             </button>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase text-slate-500 tracking-wider mb-2">Asset</label>
+          <select
+            value={asset}
+            onChange={(e) => setAsset(e.target.value as AssetPair)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
+          >
+            <option value="XAU/USD">XAU/USD</option>
+            <option value="BTC/USD">BTC/USD</option>
+            <option value="EUR/USD">EUR/USD</option>
+          </select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
