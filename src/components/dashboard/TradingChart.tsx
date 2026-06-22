@@ -36,8 +36,8 @@ export default function TradingChart() {
         </div>
       </div>
       
-      <div className="h-[320px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[320px] min-h-[320px] min-w-0 w-full overflow-hidden">
+        <ResponsiveContainer width="100%" height="100%" minWidth={320} minHeight={320}>
           <LineChart data={equityData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
             <XAxis 

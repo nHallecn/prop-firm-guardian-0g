@@ -1,7 +1,7 @@
 // src/context/TradingContext.tsx
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { TradeRecord } from '@/types/trading';
 import { AiRiskReport } from '@/types/0g';
 
@@ -48,17 +48,26 @@ const initialLogs: CommittedLog[] = [
 ];
 
 export function TradingProvider({ children }: { children: ReactNode }) {
-  const [trades, setTrades] = useState<TradeRecord[]>(() => readStoredValue(TRADES_STORAGE_KEY, initialTrades));
-  const [committedLogs, setCommittedLogs] = useState<CommittedLog[]>(() => readStoredValue(LOGS_STORAGE_KEY, initialLogs));
+  const [trades, setTrades] = useState<TradeRecord[]>(initialTrades);
+  const [committedLogs, setCommittedLogs] = useState<CommittedLog[]>(initialLogs);
+  const hasLoadedStoredState = useRef(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    queueMicrotask(() => {
+      setTrades(readStoredValue(TRADES_STORAGE_KEY, initialTrades));
+      setCommittedLogs(readStoredValue(LOGS_STORAGE_KEY, initialLogs));
+      hasLoadedStoredState.current = true;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && hasLoadedStoredState.current) {
       window.localStorage.setItem(TRADES_STORAGE_KEY, JSON.stringify(trades));
     }
   }, [trades]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && hasLoadedStoredState.current) {
       window.localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(committedLogs));
     }
   }, [committedLogs]);
