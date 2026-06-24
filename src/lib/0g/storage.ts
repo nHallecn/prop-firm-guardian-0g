@@ -1,11 +1,14 @@
 // src/lib/0g/storage.ts
-import { Blob as ZgBlob, Indexer } from '@0gfoundation/0g-storage-ts-sdk/browser';
+import { Indexer, MemData } from '@0gfoundation/0g-storage-ts-sdk/browser';
 import { ethers } from 'ethers';
 import { AiRiskReport } from '@/types/0g';
 import { DataValidator } from '@/lib/utils/validation';
 
 const EVM_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_RPC_URL ?? "https://evmrpc-testnet.0g.ai";
-const INDEXER_RPC_URL = process.env.NEXT_PUBLIC_ZEROG_INDEXER_URL ?? "https://indexer-storage-testnet-turbo.0g.ai";
+const INDEXER_RPC_URLS = (process.env.NEXT_PUBLIC_ZEROG_INDEXER_URLS ?? process.env.NEXT_PUBLIC_ZEROG_INDEXER_URL ?? "https://indexer-storage-testnet-turbo.0g.ai,https://indexer-storage-testnet-standard.0g.ai")
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
 type StorageFile = Parameters<Indexer['upload']>[0];
 
 export async function commitReportTo0G(report: AiRiskReport): Promise<{ rootHash: string, txHash: string }> {
@@ -13,10 +16,9 @@ export async function commitReportTo0G(report: AiRiskReport): Promise<{ rootHash
     // 1. Stringify the AI evaluation payload
     const jsonString = JSON.stringify(report, null, 2);
     const fileBuffer = new TextEncoder().encode(jsonString);
-    const reportBlob = new globalThis.Blob([fileBuffer], { type: "application/json" });
     
     // 2. Initialize 0G File and compute Merkle Tree
-    const zgFile = new ZgBlob(reportBlob) as unknown as StorageFile;
+    const zgFile = new MemData(fileBuffer) as unknown as StorageFile;
     const [tree, treeError] = await zgFile.merkleTree();
     if (treeError || !tree) {
       throw treeError ?? new Error("Unable to compute 0G Merkle tree.");
@@ -33,15 +35,7 @@ export async function commitReportTo0G(report: AiRiskReport): Promise<{ rootHash
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
 
-    // 4. Initialize Indexer and Upload to 0G Storage Node
-    const indexer = new Indexer(INDEXER_RPC_URL);
-    const [uploadResult, uploadError] = await indexer.upload(zgFile, EVM_RPC_URL, signer);
-    if (uploadError || !uploadResult || !('txHash' in uploadResult)) {
-      throw uploadError ?? new Error("0G upload did not return a single transaction hash.");
-    }
-    if (!uploadResult.txHash) {
-      throw new Error("0G upload returned an empty transaction hash.");
-    }
+    const uploadResult = await uploadWithAvailableIndexer(zgFile, signer);
     
     return { rootHash, txHash: uploadResult.txHash };
   } catch (error) {
@@ -51,7 +45,7 @@ export async function commitReportTo0G(report: AiRiskReport): Promise<{ rootHash
 }
 
 export async function fetchReportFrom0G(rootHash: string): Promise<AiRiskReport> {
-  const indexer = new Indexer(INDEXER_RPC_URL);
+  const indexer = new Indexer(INDEXER_RPC_URLS[0]);
   const [blob, downloadError] = await indexer.downloadToBlob(rootHash);
   if (downloadError) {
     throw downloadError;
@@ -65,4 +59,37 @@ export async function fetchReportFrom0G(rootHash: string): Promise<AiRiskReport>
   }
 
   return reportCheck.sanitizedReport;
+}
+
+async function uploadWithAvailableIndexer(file: StorageFile, signer: ethers.Signer) {
+  const failures: string[] = [];
+
+  for (const indexerUrl of INDEXER_RPC_URLS) {
+    try {
+      const indexer = new Indexer(indexerUrl);
+      const [uploadResult, uploadError] = await indexer.upload(file, EVM_RPC_URL, signer);
+
+      if (uploadError || !uploadResult || !('txHash' in uploadResult)) {
+        throw uploadError ?? new Error("0G upload did not return a single transaction hash.");
+      }
+
+      if (!uploadResult.txHash) {
+        throw new Error("0G upload returned an empty transaction hash.");
+      }
+
+      return uploadResult;
+    } catch (error) {
+      failures.push(`${indexerUrl}: ${getErrorMessage(error)}`);
+    }
+  }
+
+  throw new Error(`All configured 0G indexers failed. ${failures.join(" | ")}`);
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+  return String(error);
 }
