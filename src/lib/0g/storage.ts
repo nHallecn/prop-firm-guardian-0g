@@ -13,9 +13,10 @@ export async function commitReportTo0G(report: AiRiskReport): Promise<{ rootHash
     // 1. Stringify the AI evaluation payload
     const jsonString = JSON.stringify(report, null, 2);
     const fileBuffer = new TextEncoder().encode(jsonString);
+    const reportBlob = new globalThis.Blob([fileBuffer], { type: "application/json" });
     
     // 2. Initialize 0G File and compute Merkle Tree
-    const zgFile = new ZgBlob(fileBuffer) as unknown as StorageFile;
+    const zgFile = new ZgBlob(reportBlob) as unknown as StorageFile;
     const [tree, treeError] = await zgFile.merkleTree();
     if (treeError || !tree) {
       throw treeError ?? new Error("Unable to compute 0G Merkle tree.");
