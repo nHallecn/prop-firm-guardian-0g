@@ -35,7 +35,9 @@ export async function commitReportTo0G(report: AiRiskReport): Promise<{ rootHash
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
 
-    const uploadResult = await uploadWithAvailableIndexer(zgFile, signer);
+    const uploadResult = await uploadWithAvailableIndexer(zgFile, signer).catch((error) => {
+      throw new Error(`Local Merkle root computed (${rootHash}), but 0G upload failed because the configured storage indexers are unreachable. ${getErrorMessage(error)}`);
+    });
     
     return { rootHash, txHash: uploadResult.txHash };
   } catch (error) {
